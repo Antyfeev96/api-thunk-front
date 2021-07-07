@@ -3,16 +3,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   changeInputField,
   changeEditedId,
-  changeFilteredList,
-  fetchServicesRequest, fetchServiceSuccess, fetchServicesError
+  fetchService,
+  saveService
 } from '../../Reducers/Reducers';
 import React, { Fragment, useEffect } from "react";
 import Error from "../Error/Error";
 import Spinner from "../Spinner/Spinner";
-import API from "../../API";
 import { useHistory } from "react-router-dom";
-
-const api = new API();
 
 const Form = styled.form`
   input {
@@ -47,40 +44,14 @@ const Button = styled.button`
   font-size: 20px;
 `
 
-const fetchService = async (dispatch, id) => {
-  dispatch(fetchServicesRequest());
-  try {
-    const response = await api.getItem(id);
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    const data = await response.json();
-    await dispatch(fetchServiceSuccess(data));
-  } catch(e) {
-    dispatch(fetchServicesError(e.message));
-  }
-}
-
-const saveService = async (dispatch, data) => {
-  dispatch(fetchServicesRequest())
-  try {
-    const response = await api.saveItem(data);
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    dispatch(fetchServicesRequest());
-  } catch(e) {
-    dispatch(fetchServicesError(e.message));
-  }
-}
-
 export default function EditForm() {
   const state = useSelector(state => state.myState);
   const dispatch = useDispatch();
   const history = useHistory();
 
   useEffect(() => {
-    fetchService(dispatch, state.editedId)
+    if (state.editedId === null) return;
+    dispatch(fetchService(state.editedId))
   },[dispatch, state.editedId])
 
   const clearInputs = () => {
@@ -97,9 +68,8 @@ export default function EditForm() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const { editedId, name, price, content } = state
-    saveService(dispatch, { id: editedId, name, price, content })
+    dispatch(saveService({ id: editedId, name, price, content }))
     history.goBack();
-    dispatch(changeFilteredList())
     clearInputs();
   }
 
