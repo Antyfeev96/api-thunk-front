@@ -1,6 +1,7 @@
 export default class API {
   constructor() {
     this.url = 'http://localhost:7070/api';
+    console.log(123);
   }
 
   async fetchItems() {
